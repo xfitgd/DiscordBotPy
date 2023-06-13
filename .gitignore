@@ -1,0 +1,6 @@
+build/
+botToken.json
+key/
+.cache
+.cache/
+test.html
