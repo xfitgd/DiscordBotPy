@@ -111,7 +111,7 @@ async def checklivestreams():
 @tasks.loop(seconds=60.0)
 async def checkforvideos():
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{YOUTUBE_URL}/videos") as response:#단축링크 사용 ㄴㄴ
+        async with session.get(f"{YOUTUBE_URL}/videos") as response:
             html = await response.text()
             try:
                 latest_video_url = "https://www.youtube.com/watch?v=" + re.search('(?<="videoId":").*?(?=")', html).group()
