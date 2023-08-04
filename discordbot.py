@@ -1,22 +1,21 @@
 import json
-from xml.etree.ElementInclude import include
-import requests
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions
-import asyncio
 import nest_asyncio
-import time
 from discord.ext import tasks
 import aiohttp
 import re
 from bs4 import BeautifulSoup
 
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 nest_asyncio.apply()
 tokenjson = json.load(open('key/botToken.json', encoding = 'utf-8'))
 
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix="!",intents=intents)
 
 stream_code = int(tokenjson['stream_code']) # 디스코드 방송 알림 채널 코드
 log_code = int(tokenjson['log_code']) # 디스코드 로그 채널 코드
@@ -77,9 +76,12 @@ streamcheck = False
 CHANNEL_ID = tokenjson['youtube_channel_id']
 YOUTUBE_URL = 'https://www.youtube.com/@xfitgd'
 
+CHECK_STREAM = False
 
 @tasks.loop(seconds=60.0)
 async def checklivestreams():
+    global CHECK_STREAM
+
     streaming_link = f'{YOUTUBE_URL}/live'
     async with aiohttp.ClientSession() as session:
         async with session.get(streaming_link) as response:
@@ -89,26 +91,29 @@ async def checklivestreams():
                 
                 thum = soup.find("link",rel="image_src", href=True)['href']
 
-                if "hqdefault_live.jpg" in thum:
-                    print(f'방송을 시작했습니다! {streaming_link}')
+                if "_live.jpg" in thum:
+                    if not CHECK_STREAM:
+                        print(f'방송을 시작했습니다! {streaming_link}')
 
-                    title = soup.find("meta",property="og:title")['content']
-                    embed = discord.Embed(
-                                title=f":red_circle: 방송을 시작했습니다! : {title}",
-                                color=discord.Color.blue(),
-                                url=streaming_link)
-                                                        
-                    embed.set_image(url = thum)
-                    embed.add_field(f"Youtube 방송 링크 : {streaming_link}")
-                    embed.add_field("Kick 방송 링크 : https://kick.com/xfit")
+                        title = soup.find("meta",property="og:title")['content']
+                        embed = discord.Embed(
+                                    title=f":red_circle: 방송을 시작했습니다! : {title}",
+                                    color=discord.Color.blue(),
+                                    url=streaming_link)
+                                                            
+                        embed.set_image(url = thum)
+                        embed.add_field(name="Youtube 방송 링크",value=streaming_link)
+                        embed.add_field(name="Kick 방송 링크",value="https://kick.com/xfit")
 
-                    await bot.get_channel(int(tokenjson['stream_code'])).send(embed=embed)
+                        await bot.get_channel(stream_code).send(embed=embed) 
+                        CHECK_STREAM = True
+                else:
+                    CHECK_STREAM = False
             except:
-                return
-                
+                return              
 
 
-@tasks.loop(seconds=60.0)
+@tasks.loop(seconds=600.0)
 async def checkforvideos():
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{YOUTUBE_URL}/videos") as response:
@@ -117,13 +122,9 @@ async def checkforvideos():
                 latest_video_url = "https://www.youtube.com/watch?v=" + re.search('(?<="videoId":").*?(?=")', html).group()
             except:
                 return
-
-            if not str(tokenjson["latest_video_url"]) == latest_video_url:
-                tokenjson['latest_video_url'] = latest_video_url
-
-                with open('key/botToken.json', "w", encoding = 'utf-8') as f:
-                    json.dump(tokenjson, f)
-                    await bot.get_channel(int(tokenjson['youtube_code'])).send(f"유튜브 영상이 업로드되었습니다!\n{latest_video_url}")
+            messages = [message async for message in bot.get_channel(int(tokenjson['youtube_code'])).history(limit=1)]
+            if len(messages) == 0 or not latest_video_url in messages[0].content:
+                await bot.get_channel(int(tokenjson['youtube_code'])).send(f"유튜브 영상이 업로드되었습니다!\n{latest_video_url}")
 
 
 @bot.event
@@ -138,7 +139,7 @@ async def on_ready():
 
 @bot.command()
 async def ping(ctx):
-    await ctx.send(f'pong! {round(bot.latency*1000, 4)}ms')
+    await ctx.reply(f'pong! {round(bot.latency*1000, 4)}ms')
 
 
 @bot.command()
@@ -149,25 +150,25 @@ async def rm(ctx, number = 1):
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send("명령을 실행할 권한이 없습니다! 매니저에게 문의해주세요.")
+        await ctx.reply("명령을 실행할 권한이 없습니다! 매니저에게 문의해주세요.")
     elif isinstance(error, commands.MemberNotFound):
-        await ctx.send("유저 잘못됨!")
+        await ctx.reply("유저 잘못됨!")
     else:
         raise error
 
-@bot.event
-async def on_message_delete(message):
-    if message.channel.id != log_code and (not message.author.bot):
-        embed=discord.Embed(title="{} 삭제한 메시지".format(message.author.name), description="", color=discord.Color.blue())
-        embed.add_field(name= message.content ,value="", inline=True)
-        await bot.get_channel(log_code).send(embed=embed)
+# @bot.event
+# async def on_message_delete(message):
+#     if message.channel.id != log_code and (not message.author.bot):
+#         embed=discord.Embed(title="{} 삭제한 메시지".format(message.author.name), description="", color=discord.Color.blue())
+#         embed.add_field(name= message.content ,value="", inline=True)
+#         await bot.get_channel(log_code).send(embed=embed)
 
-@bot.event
-async def on_message_edit(message_before, message_after):
-    if message_before.channel.id != log_code and (not message_before.author.bot):
-        embed=discord.Embed(title="{} 수정된 메시지".format(message_before.author.name), description="", color=discord.Color.blue())
-        embed.add_field(name=message_before.content ,value="전", inline=True)
-        embed.add_field(name=message_after.content ,value="후", inline=True)
-        await bot.get_channel(log_code).send(embed=embed)
+# @bot.event
+# async def on_message_edit(message_before, message_after):
+#     if message_before.channel.id != log_code and (not message_before.author.bot):
+#         embed=discord.Embed(title="{} 수정된 메시지".format(message_before.author.name), description="", color=discord.Color.blue())
+#         embed.add_field(name=message_before.content ,value="전", inline=True)
+#         embed.add_field(name=message_after.content ,value="후", inline=True)
+#         await bot.get_channel(log_code).send(embed=embed)
 
-bot.run(tokenjson['token'])
+bot.run(tokenjson["token"])
