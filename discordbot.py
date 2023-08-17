@@ -9,7 +9,15 @@ import re
 from bs4 import BeautifulSoup
 
 import os
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+import sys
+
+if getattr(sys, 'frozen', False):
+    #test.exe로 실행한 경우,test.exe를 보관한 디렉토리의 full path를 취득
+    program_directory = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    #python test.py로 실행한 경우,test.py를 보관한 디렉토리의 full path를 취득
+    program_directory = os.path.dirname(os.path.abspath(__file__))
+os.chdir(program_directory)
 
 nest_asyncio.apply()
 tokenjson = json.load(open('key/botToken.json', encoding = 'utf-8'))
@@ -18,7 +26,7 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!",intents=intents)
 
 stream_code = int(tokenjson['stream_code']) # 디스코드 방송 알림 채널 코드
-log_code = int(tokenjson['log_code']) # 디스코드 로그 채널 코드
+#log_code = int(tokenjson['log_code']) # 디스코드 로그 채널 코드
 title = ''
 streamcheck = False
 
