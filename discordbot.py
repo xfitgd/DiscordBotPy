@@ -12,10 +12,10 @@ import os
 import sys
 
 if getattr(sys, 'frozen', False):
-    #test.exe로 실행한 경우,test.exe를 보관한 디렉토리의 full path를 취득
+    #discordbot.exe로 실행한 경우,discordbot.exe를 보관한 디렉토리의 full path를 취득
     program_directory = os.path.dirname(os.path.abspath(sys.executable))
 else:
-    #python test.py로 실행한 경우,test.py를 보관한 디렉토리의 full path를 취득
+    #python3 discordbot.py로 실행한 경우,discordbot.py를 보관한 디렉토리의 full path를 취득
     program_directory = os.path.dirname(os.path.abspath(__file__))
 os.chdir(program_directory)
 
