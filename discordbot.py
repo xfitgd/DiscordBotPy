@@ -92,8 +92,8 @@ async def checklivestreams():
 
     streaming_link = f'{YOUTUBE_URL}/live'
     async with aiohttp.ClientSession() as session:
-        async with session.get(streaming_link) as response:
-            try:
+        try:
+            async with session.get(streaming_link) as response:
                 html = await response.text()
                 soup = BeautifulSoup(html, 'html.parser')
                 
@@ -116,24 +116,27 @@ async def checklivestreams():
                         await bot.get_channel(stream_code).send(embed=embed) 
                         CHECK_STREAM = True
                 else:
-                    CHECK_STREAM = False
-            except:
-                return              
-
+                    if CHECK_STREAM:
+                        print(f'Offline!')
+                        CHECK_STREAM = False
+        except Exception as e:
+            print('checklivestreams Error', str(e))
+            return
 
 @tasks.loop(seconds=600.0)
 async def checkforvideos():
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{YOUTUBE_URL}/videos") as response:
-            html = await response.text()
-            try:
+        try:
+            async with session.get(f"{YOUTUBE_URL}/videos") as response:
+                html = await response.text()
                 latest_video_url = "https://www.youtube.com/watch?v=" + re.search('(?<="videoId":").*?(?=")', html).group()
-            except:
-                return
-            messages = [message async for message in bot.get_channel(int(tokenjson['youtube_code'])).history(limit=1)]
-            if len(messages) == 0 or not latest_video_url in messages[0].content:
-                await bot.get_channel(int(tokenjson['youtube_code'])).send(f"유튜브 영상이 업로드되었습니다!\n{latest_video_url}")
-
+                
+                messages = [message async for message in bot.get_channel(int(tokenjson['youtube_code'])).history(limit=1)]
+                if len(messages) == 0 or not latest_video_url in messages[0].content:
+                    await bot.get_channel(int(tokenjson['youtube_code'])).send(f"유튜브 영상이 업로드되었습니다!\n{latest_video_url}")
+        except Exception as e:
+            print('checkforvideos Error', str(e))
+            return
 
 @bot.event
 async def on_ready():
