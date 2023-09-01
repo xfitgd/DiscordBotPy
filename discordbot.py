@@ -81,7 +81,6 @@ streamcheck = False
 #     	await ctx.send("재생중인 음악이 없습니다!")
 
 
-CHANNEL_ID = tokenjson['youtube_channel_id']
 YOUTUBE_URL = 'https://www.youtube.com/@xfitgd'
 
 CHECK_STREAM = False
