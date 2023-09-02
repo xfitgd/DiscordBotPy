@@ -3,3 +3,5 @@ botToken.json
 key/
 .cache
 .cache/
+*.spec
+dist/
