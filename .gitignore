@@ -5,3 +5,4 @@ key/
 .cache/
 *.spec
 dist/
+*.exe
