@@ -97,19 +97,20 @@ async def checklivestreams():
                 soup = BeautifulSoup(html, 'html.parser')
                 
                 thum = soup.find("link",rel="image_src", href=True)['href']
+                live_link = soup.find("link",rel="canonical", href=True)['href']
 
-                if "_live.jpg" in thum:
+                if ("_live.jpg" in thum) and (live_link != None):
                     if not CHECK_STREAM:
-                        print(f'방송을 시작했습니다! {streaming_link}')
+                        print(f'방송을 시작했습니다! {live_link}')
 
                         title = soup.find("meta",property="og:title")['content']
                         embed = discord.Embed(
                                     title=f":red_circle: 방송을 시작했습니다! : {title}",
                                     color=discord.Color.blue(),
-                                    url=streaming_link)
+                                    url=live_link)
                                                             
                         embed.set_image(url = thum)
-                        embed.add_field(name="Youtube 방송 링크",value=streaming_link)
+                        embed.add_field(name="Youtube 방송 링크",value=live_link)
                         embed.add_field(name="Kick 방송 링크",value="https://kick.com/xfit")
 
                         await bot.get_channel(stream_code).send(embed=embed) 
