@@ -112,6 +112,7 @@ async def checklivestreams():
                         embed.set_image(url = thum)
                         embed.add_field(name="Youtube 방송 링크",value=live_link)
                         embed.add_field(name="Kick 방송 링크",value="https://kick.com/xfit")
+                        embed.add_field(name="치지직 방송 링크",value="https://chzzk.naver.com/live/6d0cfc16b2b9b290eeba8f1499365b88")
 
                         await bot.get_channel(stream_code).send(embed=embed) 
                         CHECK_STREAM = True
@@ -142,7 +143,6 @@ async def checkforvideos():
 async def on_ready():
     print('Logged in as')
     print(bot.user.name)
-    print(bot.user.id)
     print('------')
 
     checkforvideos.start()
