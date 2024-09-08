@@ -11,6 +11,8 @@ from bs4 import BeautifulSoup
 import os
 import sys
 
+#? python -m venv .venv, pip install (pyinstaller, discord, bs4, nest_asyncio), pyinstaller -w -F discordbot.py => if use console del -w
+
 if getattr(sys, 'frozen', False):
     #discordbot.exe로 실행한 경우,discordbot.exe를 보관한 디렉토리의 full path를 취득
     program_directory = os.path.dirname(os.path.abspath(sys.executable))

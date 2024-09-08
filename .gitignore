@@ -8,3 +8,4 @@ dist/
 *.exe
 *.html
 .venv/
+pyvenv.cfg
