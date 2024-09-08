@@ -1,3 +1,6 @@
+from tendo import singleton
+me = singleton.SingleInstance()#중복 실행 방지
+
 import json
 import discord
 from discord.ext import commands
@@ -11,7 +14,7 @@ from bs4 import BeautifulSoup
 import os
 import sys
 
-#? python -m venv .venv, pip install (pyinstaller, discord, bs4, nest_asyncio), pyinstaller -w -F discordbot.py => if use console del -w
+#? python -m venv .venv, pip install (pyinstaller, discord, bs4, nest_asyncio, tendo), pyinstaller -w -F discordbot.py => if use console del -w
 
 if getattr(sys, 'frozen', False):
     #discordbot.exe로 실행한 경우,discordbot.exe를 보관한 디렉토리의 full path를 취득
