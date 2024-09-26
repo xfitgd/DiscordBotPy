@@ -90,32 +90,27 @@ YOUTUBE_URL = 'https://www.youtube.com/@xfitgd'
 
 CHECK_STREAM = False
 
-@tasks.loop(seconds=60.0)
+@tasks.loop(seconds=180.0)
 async def checklivestreams():
     global CHECK_STREAM
 
-    streaming_link = f'{YOUTUBE_URL}/live'
+    streaming_link = 'https://api.chzzk.naver.com/polling/v2/channels/6d0cfc16b2b9b290eeba8f1499365b88/live-status'
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(streaming_link) as response:
-                html = await response.text()
-                soup = BeautifulSoup(html, 'html.parser')
+                live = await response.text()
+                data = json.loads(live)
                 
-                thum = soup.find("link",rel="image_src", href=True)['href']
-                live_link = soup.find("link",rel="canonical", href=True)['href']
-
-                if ("_live.jpg" in thum) and (live_link != None):
+                if data['content']['status'] == "OPEN":
                     if not CHECK_STREAM:
-                        print(f'방송을 시작했습니다! {live_link}')
+                        print(f'방송을 시작했습니다!')
 
-                        title = soup.find("meta",property="og:title")['content']
+                        title = data['content']['liveTitle']
                         embed = discord.Embed(
                                     title=f":red_circle: 방송을 시작했습니다! : {title}",
                                     color=discord.Color.blue(),
-                                    url=live_link)
+                                    url="https://chzzk.naver.com/live/6d0cfc16b2b9b290eeba8f1499365b88")
                                                             
-                        embed.set_image(url = thum)
-                        embed.add_field(name="Youtube 방송 링크",value=live_link)
                         embed.add_field(name="Kick 방송 링크",value="https://kick.com/xfit")
                         embed.add_field(name="치지직 방송 링크",value="https://chzzk.naver.com/live/6d0cfc16b2b9b290eeba8f1499365b88")
 
@@ -129,7 +124,7 @@ async def checklivestreams():
             print('checklivestreams Error', str(e))
             return
 
-@tasks.loop(seconds=600.0)
+@tasks.loop(seconds=1200.0)
 async def checkforvideos():
     async with aiohttp.ClientSession() as session:
         try:
